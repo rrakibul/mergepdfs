@@ -2,7 +2,8 @@
 
 namespace App\Command;
 
-use App\Model\PdfManager;
+use App\Helper\Finder as AppFinder;
+use App\Helper\Pdf;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -10,7 +11,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class MergePdfsCommand extends Command
 {
-    // the name of the command (the part after "bin/console")
     protected static $defaultName = 'app:merge-pdfs';
 
     protected function configure(): void
@@ -23,40 +23,48 @@ class MergePdfsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $paths = $this->pickFilePaths($input, $output);
+        $this->mergeAndSaveFile($paths['inputFilePath'], $paths['outputFilePath']);
 
-        $userInputFilePath = $input->getArgument('inputFilePath');
-        $userOutputFilePath = $input->getArgument('outputFilePath');
+        $output->writeln('<info>Success<info>');
+        return Command::SUCCESS;
+    }
 
-        $userInputFilePath = INPUT_PATH . $userInputFilePath;
+    public function pickFilePaths(InputInterface $input, OutputInterface $output)
+    {
+        $inputFilePath = $input->getArgument('inputFilePath');
+        $outputFilePath = $input->getArgument('outputFilePath');
 
-        if (!file_exists($userInputFilePath) || !is_dir($userInputFilePath)) {
+        $inputFilePath = INPUT_PATH . $inputFilePath;
+
+        if (!file_exists($inputFilePath) || !is_dir($inputFilePath)) {
             $output->writeln('<error>Input folder missing</error>');
             return Command::FAILURE;
         }
 
-        if (empty($userOutputFilePath)) {
-            $pathParts = pathinfo($userInputFilePath);
-            $userOutputFilePath = OUTPUT_PATH . $pathParts['basename'];
+        if (empty($outputFilePath)) {
+            $pathParts = pathinfo($inputFilePath);
+            $outputFilePath = OUTPUT_PATH . $pathParts['basename'];
         } else {
-            $userOutputFilePath = OUTPUT_PATH . $userOutputFilePath;
+            $outputFilePath = OUTPUT_PATH . $outputFilePath;
         }
 
-        if (!file_exists($userOutputFilePath)) {
-            mkdir($userOutputFilePath, 0777);
+        if (!file_exists($outputFilePath)) {
+            mkdir($outputFilePath, 0777);
         }
 
-        $pdfManager = new PdfManager();
-        $pdfManager->mergeFiles($userInputFilePath, $userOutputFilePath);
+        return [
+            'inputFilePath' => $inputFilePath,
+            'outputFilePath' => $outputFilePath
+        ];
+    }
 
-        $output->writeln('<info>Success<info>');
-        return Command::SUCCESS;
+    public function mergeAndSaveFile($inputPath, $outputPath, $outFilename = 'merged.pdf')
+    {
+        $files = AppFinder::findFiles($inputPath, ['pdf']);
 
-        // or return this if some error happened during the execution
-        // (it's equivalent to returning int(1))
-        // return Command::FAILURE;
+        $pdf = new Pdf();
 
-        // or return this to indicate incorrect command usage; e.g. invalid options
-        // or missing arguments (it's equivalent to returning int(2))
-        // return Command::INVALID
+        file_put_contents($outputPath . "/$outFilename", $pdf->merge($files, 'S'));
     }
 }
