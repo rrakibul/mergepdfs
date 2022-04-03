@@ -1,13 +1,13 @@
 <h2>PDF Merger</h2>
-<hr>
+
 <p>Merge multiple PDF files into a single one.</p>
 <h3>Command</h3>
-<hr>
-Syntax:
+
+<h4>Syntax:</h4>
 
 `php bin/console app:merge-pdfs <inputFilePath> [<outputFilePath>]`
 
-Sample commands:
+<h4>Sample commands:</h4>
 
 1. `php bin/console app:merge-pdfs files`
 Here `files` is the inputFilePath where all files reside which needs to be merged
