@@ -16,8 +16,8 @@ class MergePdfsCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('inputUserPath', InputArgument::REQUIRED, 'Path of the folder where files to be merged')
-            ->addArgument('outputUserPath', InputArgument::OPTIONAL, 'Output file path')
+            ->addArgument('inputPath', InputArgument::REQUIRED, 'Path of the folder where files to be merged')
+            ->addArgument('outputPath', InputArgument::OPTIONAL, 'Output file path')
         ;
     }
 
@@ -27,7 +27,7 @@ class MergePdfsCommand extends Command
 
         $this->processFiles($paths['inputPath'], $paths['outputPath']);
 
-        $this->mergeFiles($paths['outputPath'], $input->getArgument('inputUserPath'));
+        $this->mergeFiles($paths['outputPath'], $input->getArgument('inputPath'));
         
         $output->writeln('<info>Success<info>');
         return Command::SUCCESS;
@@ -63,8 +63,8 @@ class MergePdfsCommand extends Command
 
     public function pickFilePaths(InputInterface $input, OutputInterface $output)
     {
-        $inputUserPath = $input->getArgument('inputUserPath');
-        $outputUserPath = $input->getArgument('outputUserPath');
+        $inputUserPath = $input->getArgument('inputPath');
+        $outputUserPath = $input->getArgument('outputPath');
 
         $inputUserPath = INPUT_PATH . $inputUserPath;
 
