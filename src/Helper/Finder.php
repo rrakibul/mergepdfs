@@ -18,8 +18,8 @@ class Finder
 
         $files = [];
 
-        foreach ($finder as $file) {
-            $files[] = $file->getRealPath();
+        foreach ($finder->files() as $file) {
+            $files[] = $file;
         }
 
         return $files;

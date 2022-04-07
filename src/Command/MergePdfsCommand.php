@@ -16,55 +16,100 @@ class MergePdfsCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('inputFilePath', InputArgument::REQUIRED, 'Path of the folder where files to be merged')
-            ->addArgument('outputFilePath', InputArgument::OPTIONAL, 'Output file path')
+            ->addArgument('inputUserPath', InputArgument::REQUIRED, 'Path of the folder where files to be merged')
+            ->addArgument('outputUserPath', InputArgument::OPTIONAL, 'Output file path')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $paths = $this->pickFilePaths($input, $output);
-        $this->mergeAndSaveFile($paths['inputFilePath'], $paths['outputFilePath']);
 
+        $this->processFiles($paths['inputPath'], $paths['outputPath']);
+
+        $this->mergeFiles($paths['outputPath'], $input->getArgument('inputUserPath'));
+        
         $output->writeln('<info>Success<info>');
         return Command::SUCCESS;
+    }
+    
+    public function mergeFiles($filesPath, $fileName)
+    {
+        $files = AppFinder::findFiles($filesPath, ['pdf']);
+
+        $pdf = new Pdf();
+
+        file_put_contents(OUTPUT_PATH . $fileName . '-' .
+            date('ymd-Hi') . '.pdf', $pdf->merge($files, 'S'));
+
+        $this->removeDirectory(OUTPUT_PATH . $fileName);
+    }
+
+    public function processFiles($inputPath, $outputPath)
+    {
+        $files = AppFinder::findFiles($inputPath, ['pdf', 'jpeg']);
+
+        $pdf = new Pdf();
+
+        foreach ($files as $file) {
+            if ($file->getExtension() == 'pdf') {
+                copy($inputPath . DIRECTORY_SEPARATOR . $file->getFilename(),
+                $outputPath . DIRECTORY_SEPARATOR . $file->getFilename());
+            } else {
+                $pdf->convertToPdfAndSave($outputPath, $file);
+            }
+        }
     }
 
     public function pickFilePaths(InputInterface $input, OutputInterface $output)
     {
-        $inputFilePath = $input->getArgument('inputFilePath');
-        $outputFilePath = $input->getArgument('outputFilePath');
+        $inputUserPath = $input->getArgument('inputUserPath');
+        $outputUserPath = $input->getArgument('outputUserPath');
 
-        $inputFilePath = INPUT_PATH . $inputFilePath;
+        $inputUserPath = INPUT_PATH . $inputUserPath;
 
-        if (!file_exists($inputFilePath) || !is_dir($inputFilePath)) {
+        if (!file_exists($inputUserPath) || !is_dir($inputUserPath)) {
             $output->writeln('<error>Input folder missing</error>');
             return Command::FAILURE;
         }
 
-        if (empty($outputFilePath)) {
-            $pathParts = pathinfo($inputFilePath);
-            $outputFilePath = OUTPUT_PATH . $pathParts['basename'];
+        if (empty($outputUserPath)) {
+            $pathParts = pathinfo($inputUserPath);
+            $outputUserPath = OUTPUT_PATH . $pathParts['basename'];
         } else {
-            $outputFilePath = OUTPUT_PATH . $outputFilePath;
+            $outputUserPath = OUTPUT_PATH . $outputUserPath;
         }
 
-        if (!file_exists($outputFilePath)) {
-            mkdir($outputFilePath, 0777);
+        if (!file_exists($outputUserPath)) {
+            mkdir($outputUserPath, 0777);
         }
 
         return [
-            'inputFilePath' => $inputFilePath,
-            'outputFilePath' => $outputFilePath
+            'inputPath' => $inputUserPath,
+            'outputPath' => $outputUserPath
         ];
     }
 
-    public function mergeAndSaveFile($inputPath, $outputPath, $outFilename = 'merged.pdf')
+    function removeDirectory($dir)
     {
-        $files = AppFinder::findFiles($inputPath, ['pdf']);
+        if (!file_exists($dir)) {
+            return true;
+        }
 
-        $pdf = new Pdf();
+        if (!is_dir($dir)) {
+            return unlink($dir);
+        }
 
-        file_put_contents($outputPath . "/$outFilename", $pdf->merge($files, 'S'));
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+
+            if (!$this->removeDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+                return false;
+            }
+        }
+
+        return rmdir($dir);
     }
 }
