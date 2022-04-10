@@ -4,7 +4,7 @@ namespace App\Helper;
 
 use setasign\Fpdi\Fpdi;
 
-class Pdf
+class PdfHelper
 {
     public function convertToPdfAndSave($outputPath, \SplFileInfo  $file)
     {
