@@ -9,9 +9,9 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class MergePdfsCommand extends Command
+class MergePdfCommand extends Command
 {
-    protected static $defaultName = 'app:merge-pdfs';
+    protected static $defaultName = 'app:merge-pdf';
 
     protected function configure(): void
     {
@@ -32,7 +32,7 @@ class MergePdfsCommand extends Command
 
         $this->mergeFiles($paths['outputPath'], $outfileName);
         
-        $output->writeln('<info>Success<info>');
+        $output->write('<info>Success<info>');
         return Command::SUCCESS;
     }
     
