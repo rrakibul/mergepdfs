@@ -5,13 +5,13 @@
 
 <h4>Syntax:</h4>
 
-`php bin/console app:merge-pdfs <inputPath> [<outputPath>]`
+`php bin/console app:merge-pdfs <input_dir_name> [<output_filename>]`
 
 <h4>Sample commands:</h4>
 
-1. `php bin/console app:merge-pdfs files`
-Here `files` is the inputPath where all files reside which needs to be merged
+1. `php bin/console app:merge-pdf files`
+Here `files` is the input directory where all the files reside those need to be merged
 
 
-2. `php bin/console app:merge-pdfs files outfile`
-Here `outfile` is a directory where merged file will be generated
+2. `php bin/console app:merge-pdf files outfile`
+Here `outfile` is the file name with datetime suffix that will be generated as output
